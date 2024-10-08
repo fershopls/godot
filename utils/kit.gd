@@ -37,7 +37,7 @@ static func timestamp():
 	return int(Time.get_unix_time_from_system())
 
 static func wait(wait_time: float):
-	var timer = get_tree().create_timer(wait_time)
+	var timer = Engine.get_main_loop().create_timer(wait_time)
 	return timer.timeout
 
 static func calculate_acceleration(speed: float, time: float):
