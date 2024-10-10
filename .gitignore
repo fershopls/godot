@@ -1,5 +1,12 @@
-icon.svg
 .godot
 assets
 *.import
 .DS_Store
+save.json
+*.png
+*.svg
+*.jpg
+*.jpeg
+*.wav
+*.mp3
+*.ogg
