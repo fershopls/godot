@@ -86,3 +86,9 @@ static func model_pull(node_model: Node):
 
 static func model_instanciate(model: Node):
 	return model.duplicate()
+
+static func collision_disable(collision_shape: CollisionShape2D):
+	collision_shape.call_deferred('set_disabled', true)
+
+static func collision_enable(collision_shape: CollisionShape2D, value = false):
+	collision_shape.call_deferred('set_disabled', value)
