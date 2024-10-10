@@ -74,4 +74,7 @@ func track(data):
 
 func _process(delta):
 	if track_label:
-		track_label.text = JSON.stringify(track_data, " ")
+		var text = ""
+		for key in track_data:
+			text = key+": "+var_to_str(track_data[key])+"\n"
+		track_label.text = text
