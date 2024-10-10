@@ -2,3 +2,4 @@ icon.svg
 .godot
 assets
 *.import
+.DS_Store
