@@ -1,7 +1,14 @@
 extends CanvasLayer
 """
 singleton: Debug
+
+Debug.track(value)
+Debug.track('velocity', value)
+Debug.track({ "velocity": value })
 """
+
+var font_size = 11
+
 func _ready():
 	print('nigga')
 	process_mode = Node.PROCESS_MODE_ALWAYS
@@ -54,16 +61,20 @@ func screenshot():
 
 var track_data: = {}
 var track_label
-func track(data):
+func track(data, value = self):
 	if not track_label:
 		var m = Kit.instantiate(MarginContainer.new(), self)
 		var p: Panel = Kit.instantiate(Panel.new(), m)
 		var bg = StyleBoxFlat.new()
 		bg.bg_color = Color.BLACK
 		p.add_theme_stylebox_override('panel', bg)
-		track_label = Kit.instantiate(Label.new(), m)
+		var l: Label = Kit.instantiate(Label.new(), m)
+		l.add_theme_font_size_override('font_size', font_size)
+		track_label = l
 	
-	if typeof(data) != TYPE_DICTIONARY:
+	if typeof(data) == TYPE_STRING and not (typeof(value) == TYPE_OBJECT and value == self):
+		data = {data: value}
+	elif typeof(data) != TYPE_DICTIONARY:
 		data = {"value": data}
 	
 	for key in data:
