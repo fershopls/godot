@@ -64,7 +64,7 @@ func track(data):
 		track_label = Kit.instantiate(Label.new(), m)
 	
 	if typeof(data) != TYPE_DICTIONARY:
-		data = {"var": data}
+		data = {"value": data}
 	
 	for key in data:
 		if data[key] is Vector2:
