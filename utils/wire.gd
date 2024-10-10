@@ -1,39 +1,47 @@
 extends Node
+"""
+Use for connect dynamic nodes via children name:
 
-signal wire_written(global_key, value)
+WIRE_<local>_<global>
 
-var wires = {}
+use it for read / write values.
+
+@onready var wire_feature = Wire.use(self, 'A')
+"""
+signal wire_written(wire_global_key, value)
+
+var _wires = {}
 
 func use(node, wire_key):
 	return WireInstance.new(node, wire_key)
 
-func write(key, value):
-	# resolve value
+func _write(wire_global_key, value):
+	# resolve callback value with old value as param
 	if typeof(value) == TYPE_CALLABLE:
-		value = value.call(wires.get(key))
+		value = value.call(_wires.get(wire_global_key))
 	
-	wires[key] = value
-	wire_written.emit(key, value)
+	_wires[wire_global_key] = value
+	wire_written.emit(wire_global_key, value)
 
-func read(key):
-	return wires.get(key)
+func _read(wire_global_key):
+	return _wires.get(wire_global_key)
 
 func clear_wires():
-	wires = {}
+	_wires = {}
 
 class WireInstance:
 	var node: Node
-	var local_key
-	var global_key
+	var wire_local_key
+	var wire_global_key
 	var listeners = []
-	func _init(node, local_key):
+	func _init(node, wire_local_key):
 		self.node = node
-		self.local_key = local_key
-		self.global_key = get_wire_global_key()
+		self.wire_local_key = wire_local_key
+		self.wire_global_key = _get_wire_global_key()
 		
-		Wire.connect('wire_written', self.wire_written)
+		Wire.connect('wire_written', self._on_wire_written)
 	
-	func get_wire_global_key():
+	func _get_wire_global_key():
 		for node in node.get_children():
 			var namespaces = node.name.split('_')
 			
@@ -43,19 +51,19 @@ class WireInstance:
 			var node_wire_local_key = namespaces[1]
 			var node_wire_global_key = namespaces[2]
 			
-			if node_wire_local_key == self.local_key:
+			if node_wire_local_key == self.wire_local_key:
 				return node_wire_global_key
 		return null
 	
-	func read(callback_on_update):
-		listeners.append(callback_on_update)
-		wire_written(global_key, Wire.read(global_key))
-	
-	func wire_written(global_key, value):
-		if self.global_key == global_key:
+	func _on_wire_written(wire_global_key, value):
+		if self.wire_global_key == wire_global_key:
 			for listener in listeners:
 				listener.call(value)
 
 	func write(value):
-		Wire.write(global_key, value)
+		Wire._write(wire_global_key, value)
+	
+	func read(callback_on_update):
+		listeners.append(callback_on_update)
+		_on_wire_written(wire_global_key, Wire._read(wire_global_key))
 
