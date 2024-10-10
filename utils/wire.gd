@@ -2,11 +2,15 @@ extends Node
 """
 Use for connect dynamic nodes via children name:
 
-WIRE_<local>_<global>
+1. Add a node with signature "WIRE_<local>_<global>"
+example: WIRE_A_001
 
-use it for read / write values.
-
+2. Use it for read / write values:
 @onready var wire_feature = Wire.use(self, 'A')
+wire_feature.write(value)
+wire_feature.read(func (value): value)
+
+3. Nodes will automatically react to each other via wires!
 """
 signal wire_written(wire_global_key, value)
 
