@@ -84,8 +84,21 @@ static func model_pull(node_model: Node):
 	node_model.queue_free()
 	return node
 
-static func model_instanciate(model: Node):
+static func model_instantiate(model: Node):
 	return model.duplicate()
+
+static func instantiate(node, parent: Node, at = null):
+	if typeof(node) == TYPE_STRING:
+		node = load(node).instantiate()
+	elif node is PackedScene:
+		node = node.instantiate()
+	
+	parent.add_child(node)
+	
+	if at:
+		node.global_position = at
+	
+	return node
 
 static func collision_disable(collision_shape: CollisionShape2D):
 	collision_shape.call_deferred('set_disabled', true)
