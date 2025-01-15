@@ -2,15 +2,12 @@ extends CanvasLayer
 """
 singleton: Debug
 
-Debug.track(value)
-Debug.track('velocity', value)
 Debug.track({ "velocity": value })
 """
 
 var font_size = 11
 
 func _ready():
-	print('nigga')
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	
 	if not OS.has_feature("editor"):
@@ -61,31 +58,40 @@ func screenshot():
 
 var track_data: = {}
 var track_label
-func track(data, value = self):
+func track(values):
 	if not track_label:
-		var m = Kit.instantiate(MarginContainer.new(), self)
-		var p: Panel = Kit.instantiate(Panel.new(), m)
-		var bg = StyleBoxFlat.new()
-		bg.bg_color = Color.BLACK
-		p.add_theme_stylebox_override('panel', bg)
-		var l: Label = Kit.instantiate(Label.new(), m)
-		l.add_theme_font_size_override('font_size', font_size)
-		track_label = l
+		track_label = _create_track_label()
 	
-	if typeof(data) == TYPE_STRING and not (typeof(value) == TYPE_OBJECT and value == self):
-		data = {data: value}
-	elif typeof(data) != TYPE_DICTIONARY:
-		data = {"value": data}
+	if typeof(values) != TYPE_DICTIONARY:
+		values = {'value': values}
 	
-	for key in data:
-		if data[key] is Vector2:
-			data[key] = data[key].floor()
+	track_data.merge(values, true)
+
+func _create_track_label():
+	var m = Kit.instantiate(MarginContainer.new(), self)
+	var p: Panel = Kit.instantiate(Panel.new(), m)
+	var bg = StyleBoxFlat.new()
+	bg.bg_color = Color.BLACK
+	p.add_theme_stylebox_override('panel', bg)
+	var l: Label = Kit.instantiate(Label.new(), m)
+	l.add_theme_font_size_override('font_size', font_size)
+	return l
+
+func _track_get_value(value) -> String:
+	# Vector2
+	if typeof(value) == TYPE_VECTOR2 or typeof(value) == TYPE_VECTOR2I:
+		value = value.floor()
+		return str(value.x)+', '+str(value.y)
 	
-	track_data.merge(data, true)
+	# String
+	if typeof(value) == TYPE_STRING:
+		return value
+	
+	return var_to_str(value)
 
 func _process(delta):
 	if track_label:
 		var text = ""
 		for key in track_data:
-			text = key+": "+var_to_str(track_data[key])+"\n"
+			text += key+": "+_track_get_value(track_data[key])+"\n"
 		track_label.text = text
