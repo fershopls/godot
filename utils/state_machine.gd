@@ -1,6 +1,23 @@
 extends Node
-
 class_name StateMachine
+
+"""
+enum State {
+	IDLE,
+	PATROL,
+	ALERT,
+	CHASE,
+	DEATH,
+}
+
+@onready var state = StateMachine.new(self, State)
+
+func _idle_physics(delta):
+	pass
+
+func _patrol_process(delta):
+	pass
+"""
 
 signal change(from, to)
 signal changed(from, to)
