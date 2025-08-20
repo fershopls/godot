@@ -8,13 +8,13 @@ func _init(ttl: int = 60):
 	self.ttl = ttl
 
 func queue():
-	queued_at = now()
+	queued_at = _now()
 
 func is_queued():
-	return now() - queued_at <= ttl
+	return _now() - queued_at <= ttl
 
 func clear():
 	queued_at = 0
 
-func now():
+func _now():
 	return Time.get_ticks_msec()
