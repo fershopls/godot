@@ -3,19 +3,23 @@ class_name StateMachine
 
 """
 enum State {
-	IDLE,
-	PATROL,
-	ALERT,
-	CHASE,
-	DEATH,
+	idle,
+	run,
+	death,
 }
 
 @onready var state = StateMachine.new(self, State)
 
+func _idle_enter():
+	pass
+
 func _idle_physics(delta):
 	pass
 
-func _patrol_process(delta):
+func _idle_process(delta):
+	pass
+
+func _idle_exit():
 	pass
 """
 
@@ -68,7 +72,7 @@ func call_parent_state_method(suffix: String, arguments: Array = []):
 	if not name:
 		return
 
-	var method = '_' + name.to_lower() + suffix
+	var method = '_' + name + suffix
 	call_parent_method(method, arguments)
 
 func call_parent_method(method: String, arguments: Array):
