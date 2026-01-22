@@ -1,91 +1,103 @@
-class_name Kit
-extends Node
+extends CanvasLayer
+"""
+singleton: Debug
 
-static func chance(value: float):
-	return randf() < value
+Debug.track({ "velocity": value })
+"""
 
-static func rand_sign():
-	return -1 if chance(0.5) else 1
+var font_size = 11
 
-static func rand_angle():
-	return randf() * PI * 2.0
-
-static func rand_direction():
-	return Vector2.from_angle(rand_angle())
-
-static func get_collision_shape_rect(collision_shape: CollisionShape2D):
-	var rectangle_shape: RectangleShape2D = collision_shape.shape
-	var position = collision_shape.global_position - rectangle_shape.size / 2.0
-	var size = rectangle_shape.size
-	return Rect2(position, size)
-
-static func center(node: Node2D):
-	var center = node.get_node_or_null('Center')
+func _ready():
+	process_mode = Node.PROCESS_MODE_ALWAYS
 	
-	if center:
-		return center.global_position
+	if not OS.has_feature("editor"):
+		queue_free()
+
+func _input(event):
+	if not (event as InputEventKey):
+		return
 	
-	return node.global_position
-
-static func copy_camera_limits(from: Camera2D, to: Camera2D):
-	to.limit_top = from.limit_top
-	to.limit_bottom = from.limit_bottom
-	to.limit_left = from.limit_left
-	to.limit_right = from.limit_right
-
-static func timestamp():
-	return int(Time.get_unix_time_from_system())
-
-static func wait(wait_time: float):
-	var timer = Engine.get_main_loop().create_timer(wait_time)
-	return timer.timeout
-
-static func calculate_acceleration(speed: float, time: float):
-	return float(speed) / float(time)
-
-static func calculate_jump_force_by_height_and_time(height: float, time: float):
-	var gravity = - ((2.0 * height) / pow(time, 2.0))
-	var jump_force = -gravity * time
-	return [gravity, jump_force]
-
-static func get_parent_in_group(node: Node, group_name: String):
-	while true:
-		if node.is_in_group(group_name):
-			break
-		
-		var parent = node.get_parent()
-		
-		if parent as Node:
-			node = parent
-			continue
-		
-		node = null
-		break
+	if not event.pressed or event.is_echo():
+		return
 	
-	return node
+	if not Input.is_key_label_pressed(KEY_SHIFT):
+		return
+	
+	shortcuts()
 
-static func particles_disable(node_container: Node):
-	node_container.visible = false
-	for node in node_container.get_children():
-		if node as GPUParticles2D:
-			node.restart()
-			node.emitting = false
+func shortcuts():
+	if Input.is_key_label_pressed(KEY_R):
+		restart()
+	
+	if Input.is_key_label_pressed(KEY_4):
+		screenshot()
+	
+	if Input.is_key_label_pressed(KEY_P):
+		get_tree().paused = not get_tree().paused
+	
+	if Input.is_key_label_pressed(KEY_F):
+		var window = get_window()
+		if window.mode != Window.MODE_MAXIMIZED:
+			window.mode = Window.MODE_MAXIMIZED
+		else:
+			window.mode = Window.MODE_WINDOWED
 
-static func particles_one_shot(node_container: Node):
-	node_container.visible = true
-	for node in node_container.get_children():
-		if node as GPUParticles2D:
-			node.restart()
-			node.emitting = true
-			node.one_shot = true
+func restart():
+	Engine.time_scale = 1
+	get_tree().paused = false
+	get_tree().reload_current_scene()
 
-static func model_pull(node_model: Node):
-	var node = node_model.duplicate()
-	node_model.queue_free()
-	return node
+func screenshot():
+	var image = get_viewport().get_texture().get_image()
+	var path = 'res://SCREENSHOT_'
+	var dir = DirAccess.open('res://')
+	if dir.dir_exists('assets'):
+		path = 'res://assets/SCREENSHOT_'
+	
+	image.save_png(path + str(timestamp()) + '.png')
 
-static func model_instantiate(model: Node):
-	return model.duplicate()
+var track_data: = {}
+var track_label
+func track(values):
+	if not track_label:
+		track_label = _create_track_label()
+	
+	if typeof(values) != TYPE_DICTIONARY:
+		values = {'value': values}
+	
+	track_data.merge(values, true)
+
+func _create_track_label():
+	var m = instantiate(MarginContainer.new(), self)
+	var p: Panel = instantiate(Panel.new(), m)
+	var bg = StyleBoxFlat.new()
+	bg.bg_color = Color.BLACK
+	p.add_theme_stylebox_override('panel', bg)
+	var l: Label = instantiate(Label.new(), m)
+	l.add_theme_font_size_override('font_size', font_size)
+	return l
+
+func _track_get_value(value) -> String:
+	# Vector2
+	if typeof(value) == TYPE_VECTOR2:
+		value = value.floor()
+		return str(value.x)+', '+str(value.y)
+	
+	if typeof(value) == TYPE_VECTOR2I:
+		return str(value.x)+', '+str(value.y)
+	
+	# String
+	if typeof(value) == TYPE_STRING:
+		return value
+	
+	return var_to_str(value)
+
+func _process(delta):
+	if track_label:
+		var text = ""
+		for key in track_data:
+			text += key+": "+_track_get_value(track_data[key])+"\n"
+		track_label.text = text
 
 static func instantiate(node, parent: Node, at = null):
 	if typeof(node) == TYPE_STRING:
@@ -100,8 +112,5 @@ static func instantiate(node, parent: Node, at = null):
 	
 	return node
 
-static func collision_disable(collision_shape: CollisionShape2D):
-	collision_shape.call_deferred('set_disabled', true)
-
-static func collision_enable(collision_shape: CollisionShape2D, value = false):
-	collision_shape.call_deferred('set_disabled', value)
+static func timestamp():
+	return int(Time.get_unix_time_from_system())
