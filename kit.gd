@@ -81,7 +81,7 @@ static func particles_one_shot(node_container: Node):
 
 static func model_pull(node_model: Node):
 	var node = node_model.duplicate()
-	node_model.queue_free()
+	node_model.get_parent().remove_child(node_model)
 	return node
 
 static func model_instantiate(model: Node):
