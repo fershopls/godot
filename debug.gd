@@ -80,8 +80,8 @@ func _create_track_label():
 func _track_get_value(value) -> String:
 	# Vector2
 	if typeof(value) == TYPE_VECTOR2:
-		value = value.floor()
-		return str(value.x)+', '+str(value.y)
+		value = (value * 100).floor() / 100.0
+		return "%.2f, %.2f" % [value.x, value.y]
 	
 	if typeof(value) == TYPE_VECTOR2I:
 		return str(value.x)+', '+str(value.y)
